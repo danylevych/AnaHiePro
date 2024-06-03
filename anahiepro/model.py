@@ -4,12 +4,40 @@ from anahiepro.nodes import Problem, Criteria, Alternative
 # TODO: Create methods for solving the problem and for setting the matrix to each layer.
 
 class Model:
-    def __init__(self, problem, criterias: list, alternatives: list):
+    def __init__(self, problem: Problem, criterias: list, alternatives: list):
         self.problem = problem
         self.alternatives = alternatives
-        self.criterias = criterias
+        self.criterias = self._build_criterias(criterias)
         self._build_problem(criterias)
         self._build_pcm(self.problem)
+    
+    def _build_criterias(self, criterias):
+        # TODO: Add more flexability to creating the criterias.
+        if isinstance(criterias, list):
+            return self._build_criterias_from_list(criterias)
+        
+        raise TypeError("The type of criterias is invalid. It might be: 'Criteria' or 'list' of 'Criteria'.")
+    
+    def _build_criterias_from_list(self, criterias):
+        if self._is_valid_structure(criterias):
+            return criterias
+        raise TypeError("The list of criterias has an invalid type.")
+    
+    def _is_valid_structure(self, obj):
+        if not isinstance(obj, list):
+            return False
+
+        for item in obj:
+            if not isinstance(item, dict):
+                return False
+            for key, value in item.items():
+                if not isinstance(key, Criteria):
+                    return False
+                if value is not None:
+                    if not self._is_valid_structure(value):
+                        return False
+        return True
+    
     
     def _build_problem(self, criterias):
         """Build the problem hierarchy."""
@@ -95,3 +123,8 @@ class Model:
                     if found_criteria is not None:
                         return found_criteria
         return None
+    
+    def attach_pcm(self, key: tuple, pcm):
+        # TODO: check if the key is right.
+        criteria = self.find_criteria(key)
+        criteria.set_matrix(pcm)
