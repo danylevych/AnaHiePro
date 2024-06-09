@@ -133,7 +133,7 @@ class Node(ABC):
         """
         return isinstance(item, Problem)
     
-    def show(self, depth=0):
+    def show(self):
         """
         Show the node and its children in a hierarchical structure.
         
@@ -147,9 +147,12 @@ class Node(ABC):
         str
             Hierarchical representation of the node.
         """
-        graph = '-' * depth + self.__str__()
+        return self._show(0) 
+    
+    def _show(self, depth):
+        graph = '+' + ('--' * depth) + self.__str__()
         for child in self.children:
-            graph += child.show(depth + 1)
+            graph += child._show(depth + 1)
         return graph
     
     def compare(self, key: tuple):
