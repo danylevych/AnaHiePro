@@ -2,6 +2,7 @@ from anahiepro.nodes import Problem, Criteria, Alternative
 import numpy as np
 
 
+
 class Model:
     def __init__(self, problem: Problem, criterias: list, alternatives: list):
         self.problem = problem
@@ -124,9 +125,20 @@ class Model:
         where.append((criteria.name, criteria._id))
     
     
+    def _is_key_correct(self, key):
+        CORRECT_LEN = 2
+        if isinstance(key, tuple) and len(key) == CORRECT_LEN:
+            if isinstance(key[0], str) and isinstance(key[1], int):
+                return True
+        return False
+
+
     def find_criteria(self, key: tuple):
         """Find criteria by (name, id) tuple."""
-        return self._find_criteria(key, self.criterias)
+        if self._is_key_correct(key):
+            return self._find_criteria(key, self.criterias)
+        else:
+            raise KeyError
     
     
     def _find_criteria(self, key: tuple, criterias):
@@ -142,13 +154,11 @@ class Model:
                         return found_criteria
         return None
     
-    # def _
     
     
     def attach_pcm(self, key: tuple, pcm):
-        # TODO: check if the key is right.
         criteria = self.find_criteria(key)
-        criteria.set_matrix(pcm)
+        criteria.set_matrix(np.array(pcm))
     
     
     def __getitem__(self, key: tuple):
@@ -156,38 +166,17 @@ class Model:
     
     
     def solve(self):
-        """
-        Solve the AHP model to get the global priority vector.
-        
-        Returns
-        -------
-        np.ndarray
-            The global priority vector.
-        """
-        global_priorities = np.zeros(len(self.alternatives))
-        self._calculate_global_priorities(self.problem, 1.0, global_priorities)
-        return global_priorities
-    
-    
-    def _calculate_global_priorities(self, node, parent_priority, global_priorities):
-        """
-        Recursively calculate global priorities for each node.
-        
-        Parameters
-        ----------
-        node : Node
-            The current node being processed.
-        parent_priority : float
-            The priority of the parent node.
-        global_priorities : np.ndarray
-            The global priority vector being accumulated.
-        """
-        if isinstance(node, Alternative):
-            index = self.alternatives.index(node)
-            global_priorities[index] += parent_priority
-            return
+        def calculate_global_vector(node):
+            if not node.children or isinstance(node.children[0], Alternative):
+                return node.get_priority_vector()
 
-        local_priorities = node.get_priority_vector()
-        
-        for child, local_priority in zip(node.children, local_priorities):
-            self._calculate_global_priorities(child, parent_priority * local_priority, global_priorities)
+            children_global_vectors = []
+            for child in node.children:
+                children_global_vectors.append(calculate_global_vector(child))
+            
+            matrix = np.column_stack(children_global_vectors)
+            parrent_vector = np.abs(node.get_priority_vector())
+            global_vector = matrix.dot(parrent_vector)
+            return global_vector
+
+        return calculate_global_vector(self.problem)

@@ -58,6 +58,10 @@ class Node(ABC):
         return self.children
     
     @abstractmethod
+    def get_key(self):
+        pass
+
+    @abstractmethod
     def add_child(self, child):
         """
         Add a child node. This method should be implemented by subclasses.
@@ -257,7 +261,7 @@ class Node(ABC):
 class Problem(Node):
     _problem_id = 0
     
-    def __init__(self, name, children=None):
+    def __init__(self, name=None, children=None):
         """
         Initialize a Problem node.
         
@@ -268,6 +272,9 @@ class Problem(Node):
         children : list, optional
             List of child nodes (default is None).
         """
+        if name is None:
+            name = "Problem" + str(Problem._problem_id)
+
         super().__init__(name, None, children, Problem._problem_id)
         Problem._problem_id += 1
     
@@ -284,11 +291,13 @@ class Problem(Node):
         self.children.append(child)
         child._add_parent(self)
 
+    def get_key(self):
+        return (self.get_name(), self._id)
 
 class Criteria(Node):
     _criteria_id = 0
     
-    def __init__(self, name, parents=None, children=None):
+    def __init__(self, name=None, parents=None, children=None):
         """
         Initialize a Criteria node.
         
@@ -301,6 +310,9 @@ class Criteria(Node):
         children : list, optional
             List of child nodes (default is None).
         """
+        if name is None:
+            name = "Problem" + str(Problem._problem_id)
+
         super().__init__(name, parents, children, Criteria._criteria_id)
         Criteria._criteria_id += 1
     
@@ -317,6 +329,8 @@ class Criteria(Node):
         self.children.append(child)
         child._add_parent(self)
 
+    def get_key(self):
+        return (self.get_name(), self._id)
 
 class Alternative(Node):
     _alternative_id = 0
@@ -330,6 +344,9 @@ class Alternative(Node):
         name : str
             Name of the alternative.
         """
+        if name is None:
+            name = "Problem" + str(Problem._problem_id)
+
         super().__init__(name, id=Alternative._alternative_id)
         Alternative._alternative_id += 1
     
@@ -375,3 +392,6 @@ class Alternative(Node):
             Always raised as Alternatives cannot have a PCM.
         """
         raise NotImplementedError("The 'class Alternative(Node)' cannot have a 'PairwiseComparisonMatrix' instance.")
+    
+    def get_key(self):
+        return (self.get_name(), self._id)
