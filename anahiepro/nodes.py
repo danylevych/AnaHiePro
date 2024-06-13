@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from anahiepro.pairwise import PairwiseComparisonMatrix
 
+
+
 class Node(ABC):
     def __init__(self, name, parents=None, children=None, id=0):
         """
@@ -24,6 +26,7 @@ class Node(ABC):
         self.children = children if children is not None else []
         self.pcm = None
     
+
     def get_name(self):
         """
         Get the name of the node.
@@ -35,6 +38,7 @@ class Node(ABC):
         """
         return self.name
     
+
     def get_parents(self):
         """
         Get the list of parent nodes.
@@ -46,6 +50,7 @@ class Node(ABC):
         """
         return self.parents
     
+
     def get_children(self):
         """
         Get the list of child nodes.
@@ -57,9 +62,11 @@ class Node(ABC):
         """
         return self.children
     
+
     @abstractmethod
     def get_key(self):
         pass
+
 
     @abstractmethod
     def add_child(self, child):
@@ -73,6 +80,7 @@ class Node(ABC):
         """
         pass
     
+
     def _add_parent(self, parent):
         """
         Add a parent node if it can be added.
@@ -85,6 +93,7 @@ class Node(ABC):
         if self._can_add(parent):
             self.parents.append(parent)
     
+
     def _check_append_condision(self, item):
         """
         Check if the item can be appended as a child.
@@ -105,6 +114,7 @@ class Node(ABC):
         if self._is_Problem(item):
             raise TypeError("The child cannot be 'Problem' object instance.")
     
+
     def _can_add(self, item):
         """
         Check if the item can be added as a node.
@@ -121,6 +131,7 @@ class Node(ABC):
         """
         return isinstance(item, Node)
     
+
     def _is_Problem(self, item):
         """
         Check if the item is an instance of Problem.
@@ -137,6 +148,7 @@ class Node(ABC):
         """
         return isinstance(item, Problem)
     
+
     def show(self):
         """
         Show the node and its children in a hierarchical structure.
@@ -153,12 +165,14 @@ class Node(ABC):
         """
         return self._show(0) 
     
+
     def _show(self, depth):
         graph = '+' + ('--' * depth) + self.__str__()
         for child in self.children:
             graph += child._show(depth + 1)
         return graph
     
+
     def compare(self, key: tuple):
         """
         Compare the node with a given key.
@@ -178,12 +192,14 @@ class Node(ABC):
         
         return self.name == key[0] and self._id == key[1]
     
+
     def create_pcm(self):
         """
         Create a Pairwise Comparison Matrix (PCM) for the node.
         """
         self.pcm = PairwiseComparisonMatrix(len(self.children))
     
+
     def set_matrix(self, matrix):
         """
         Set the matrix for the PCM.
@@ -193,9 +209,12 @@ class Node(ABC):
         matrix : np.ndarray
             Matrix to be set.
         """
-        if self.pcm:
-            self.pcm.set_matrix(matrix)
+        if not self.pcm:
+            self.create_pcm()
+
+        self.pcm.set_matrix(matrix)
     
+
     def set_comparison(self, i, j, value):
         """
         Set a comparison value in the PCM.
@@ -212,6 +231,7 @@ class Node(ABC):
         if self.pcm:
             self.pcm.set_comparison(i, j, value)
     
+
     def get_priority_vector(self):
         """
         Get the priority vector from the PCM.
@@ -224,6 +244,7 @@ class Node(ABC):
         if self.pcm:
             return self.pcm.calculate_priority_vector()
     
+
     def get_consistency_ratio(self):
         """
         Get the consistency ratio from the PCM.
@@ -236,6 +257,7 @@ class Node(ABC):
         if self.pcm:
             return self.pcm.calculate_consistency_ratio()
     
+
     def get_pcm(self):
         """
         Get the matrix from the PCM.
@@ -245,15 +267,21 @@ class Node(ABC):
         np.ndarray
             Matrix if PCM exists, None otherwise.
         """
-        if self.pcm:
-            return self.pcm.matrix
+        if not self.pcm:
+            self.create_pcm()
+
+        return self.pcm.matrix
+
+    
     
     def __str__(self) -> str:
         return self.name + '\n'
     
+
     def __eq__(self, value) -> bool:
         return self.name == value.name and self._id == value._id
     
+
     def __hash__(self) -> int:
         return hash(self.name) + hash(self._id)
 
@@ -278,6 +306,7 @@ class Problem(Node):
         super().__init__(name, None, children, Problem._problem_id)
         Problem._problem_id += 1
     
+
     def add_child(self, child):
         """
         Add a child node to the problem.
@@ -291,8 +320,10 @@ class Problem(Node):
         self.children.append(child)
         child._add_parent(self)
 
+
     def get_key(self):
         return (self.get_name(), self._id)
+
 
 class Criteria(Node):
     _criteria_id = 0
@@ -311,11 +342,12 @@ class Criteria(Node):
             List of child nodes (default is None).
         """
         if name is None:
-            name = "Problem" + str(Problem._problem_id)
+            name = "Criteria" + str(Criteria._criteria_id)
 
         super().__init__(name, parents, children, Criteria._criteria_id)
         Criteria._criteria_id += 1
     
+
     def add_child(self, child):
         """
         Add a child node to the criteria.
@@ -329,13 +361,15 @@ class Criteria(Node):
         self.children.append(child)
         child._add_parent(self)
 
+
     def get_key(self):
         return (self.get_name(), self._id)
+
 
 class Alternative(Node):
     _alternative_id = 0
     
-    def __init__(self, name):
+    def __init__(self, name=None):
         """
         Initialize an Alternative node.
         
@@ -345,11 +379,13 @@ class Alternative(Node):
             Name of the alternative.
         """
         if name is None:
-            name = "Problem" + str(Problem._problem_id)
+            name = "Alternative" + str(Alternative._alternative_id)
 
         super().__init__(name, id=Alternative._alternative_id)
         Alternative._alternative_id += 1
+        del self.pcm
     
+
     def add_child(self, child):
         """
         Prevent adding a child node to the alternative.
@@ -366,6 +402,7 @@ class Alternative(Node):
         """
         raise NotImplementedError("The 'class Alternative(Node)' cannot have a child.")
     
+
     def create_pcm(self):
         """
         Prevent creating a PCM for the alternative.
@@ -377,6 +414,7 @@ class Alternative(Node):
         """
         pass
     
+
     def set_matrix(self, matrix):
         """
         Prevent setting a matrix for the alternative.
@@ -393,5 +431,10 @@ class Alternative(Node):
         """
         raise NotImplementedError("The 'class Alternative(Node)' cannot have a 'PairwiseComparisonMatrix' instance.")
     
+
+    def set_comparison(self, i, j, value):
+        raise NotImplementedError("The 'class Alternative(Node)' cannot have a 'PairwiseComparisonMatrix' instance.")
+
+
     def get_key(self):
         return (self.get_name(), self._id)

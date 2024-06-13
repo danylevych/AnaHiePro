@@ -128,6 +128,6 @@ class TestPairwiseMatrix(unittest.TestCase):
         self.pcm.set_matrix(matrix)
         self.assertTrue(np.isnan(self.pcm.calculate_consistency_ratio()), "Consistency ratio have to be nan")
 
-    
+
 if __name__ == '__main__':
     unittest.main()
