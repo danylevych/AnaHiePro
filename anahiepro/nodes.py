@@ -22,8 +22,13 @@ class Node(ABC):
         """
         self._id = id
         self.name = name
-        self.parents = parents if parents is not None else []
-        self.children = children if children is not None else []
+        self.parents = []
+        self.children = []
+
+        if children:
+            for child in children:
+                self.add_child(child)
+
         self.pcm = None
     
 
@@ -328,7 +333,7 @@ class Problem(Node):
 class Criteria(Node):
     _criteria_id = 0
     
-    def __init__(self, name=None, parents=None, children=None):
+    def __init__(self, name=None, children=None):
         """
         Initialize a Criteria node.
         
@@ -344,7 +349,7 @@ class Criteria(Node):
         if name is None:
             name = "Criteria" + str(Criteria._criteria_id)
 
-        super().__init__(name, parents, children, Criteria._criteria_id)
+        super().__init__(name, None, children, Criteria._criteria_id)
         Criteria._criteria_id += 1
     
 

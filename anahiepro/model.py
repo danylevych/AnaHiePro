@@ -1,5 +1,6 @@
 from anahiepro._criterias_builders._empty_criteria_builder import _EmptyCriteriaBuilder
 from anahiepro._criterias_builders._list_dict_ctiteria_builder import _ListDictCriteriaBuilder
+from anahiepro._criterias_builders._list_criteria_builder import _ListCriteriaBuilder
 from anahiepro.nodes import Problem, Criteria, Alternative
 import numpy as np
 
@@ -25,48 +26,11 @@ class Model:
             elif isinstance(criterias[0], dict):
                 return _ListDictCriteriaBuilder(criterias).build_criteria()
             elif all(isinstance(c, Criteria) for c in criterias):
-                return self._build_criterias_from_list(criterias)
+                return _ListCriteriaBuilder(criterias).build_criterias()
             
         raise TypeError("The type of criterias is invalid. It might be: 'Criteria' or 'list' of 'Criteria'.")
     
-
     
-    def _build_criterias_from_list_dict(self, criterias):
-        if self._is_valid_structure(criterias) and self._has_same_depth(criterias):
-            return criterias
-        raise TypeError("The list of criterias has an invalid type.")
-    
-
-    def _build_criterias_from_list(self, criterias):
-        if not criterias:
-            return []
-
-        def build_nested_criteria(criterias, depth):
-            if depth == 0:
-                return None
-            return [{criteria: build_nested_criteria(criterias, depth - 1)} for criteria in criterias]
-
-        max_depth = self._get_max_depth(criterias)
-        return build_nested_criteria(criterias, max_depth)
-
-    
-    def _is_valid_structure(self, obj):
-        if not isinstance(obj, list):
-            return False
-
-        for item in obj:
-            if not isinstance(item, dict):
-                return False
-            for key, value in item.items():
-                if not isinstance(key, Criteria):
-                    return False
-                if value is not None:
-                    if not self._is_valid_structure(value):
-                        return False
-        return True
-    
-    
-
     def _build_model(self, criterias):
         """Build the problem hierarchy."""
         if len(criterias) == 0:

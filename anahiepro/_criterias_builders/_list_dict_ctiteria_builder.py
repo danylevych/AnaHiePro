@@ -1,9 +1,28 @@
 from anahiepro._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
+from anahiepro.nodes import Criteria
+
 
 
 class _ListDictCriteriaBuilder(_BaseCriteriaBuilder):
     def __init__(self, criterias):
+        if not self._is_valid_structure(criterias):
+            raise TypeError("The criterias have wrong structure.")
         super().__init__(criterias)
+    
+    
+    def has_same_depth(self):
+        try:
+            depths = [self._get_depth(item) for item in self.criterias]
+            return len(set(depths)) == 1
+        except ValueError:
+            return False
+
+
+    def build_criteria(self):
+        if self.has_same_depth():
+            return self.criterias
+        raise TypeError("The depths of elements are different.")
+    
 
     def _get_depth(self, structure, depth=0):
         if isinstance(structure, dict):
@@ -17,15 +36,17 @@ class _ListDictCriteriaBuilder(_BaseCriteriaBuilder):
         return depth
     
 
-    def has_same_depth(self):
-        try:
-            depths = [self._get_depth(item) for item in self.criterias]
-            return len(set(depths)) == 1
-        except ValueError:
+    def _is_valid_structure(self, obj):
+        if not isinstance(obj, list):
             return False
 
-
-    def build_criteria(self):
-        if self.has_same_depth():
-            return self.criterias
-        raise TypeError("The depth of elements is different.")
+        for item in obj:
+            if not isinstance(item, dict):
+                return False
+            for key, value in item.items():
+                if not isinstance(key, Criteria):
+                    return False
+                if value is not None:
+                    if not self._is_valid_structure(value):
+                        return False
+        return True
