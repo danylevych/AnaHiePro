@@ -1,3 +1,5 @@
+from anahiepro._criterias_builders._empty_criteria_builder import _EmptyCriteriaBuilder
+from anahiepro._criterias_builders._list_dict_ctiteria_builder import _ListDictCriteriaBuilder
 from anahiepro.nodes import Problem, Criteria, Alternative
 import numpy as np
 
@@ -8,23 +10,45 @@ class Model:
         self.problem = problem
         self.alternatives = alternatives
         self.criterias = self._build_criterias(criterias)
-        self._build_problem(criterias)
+
+        self._build_model(criterias)
         self._build_pcm(self.problem)
     
     
     def _build_criterias(self, criterias):
-        # TODO: Add more flexability to creating the criterias.
-        if isinstance(criterias, list):
-            return self._build_criterias_from_list(criterias)
+        if criterias is None:
+            return _EmptyCriteriaBuilder(criterias).build_criteria()
         
+        if isinstance(criterias, list):
+            if len(criterias) == 0:
+                return _EmptyCriteriaBuilder().build_criteria()
+            elif isinstance(criterias[0], dict):
+                return _ListDictCriteriaBuilder(criterias).build_criteria()
+            elif all(isinstance(c, Criteria) for c in criterias):
+                return self._build_criterias_from_list(criterias)
+            
         raise TypeError("The type of criterias is invalid. It might be: 'Criteria' or 'list' of 'Criteria'.")
     
+
     
-    def _build_criterias_from_list(self, criterias):
-        if self._is_valid_structure(criterias):
+    def _build_criterias_from_list_dict(self, criterias):
+        if self._is_valid_structure(criterias) and self._has_same_depth(criterias):
             return criterias
         raise TypeError("The list of criterias has an invalid type.")
     
+
+    def _build_criterias_from_list(self, criterias):
+        if not criterias:
+            return []
+
+        def build_nested_criteria(criterias, depth):
+            if depth == 0:
+                return None
+            return [{criteria: build_nested_criteria(criterias, depth - 1)} for criteria in criterias]
+
+        max_depth = self._get_max_depth(criterias)
+        return build_nested_criteria(criterias, max_depth)
+
     
     def _is_valid_structure(self, obj):
         if not isinstance(obj, list):
@@ -42,21 +66,32 @@ class Model:
         return True
     
     
-    
-    def _build_problem(self, criterias):
+
+    def _build_model(self, criterias):
         """Build the problem hierarchy."""
+        if len(criterias) == 0:
+            self._build_model_witout_criterias()
+
         if criterias:
-            self._tie(criterias)
-            self._tie_problem(criterias)
+            self._build_model_with_criterias(criterias)
+
+
+    def _build_model_witout_criterias(self):
+        self._tie_alternatives(self.problem)
     
-    
+
+    def _build_model_with_criterias(self, criterias):
+        self._tie_criterias(criterias)
+        self._tie_problem(criterias)
+
+
     def _build_pcm(self, item):
         item.create_pcm()
         for child in item.children:
             self._build_pcm(child)
     
     
-    def _tie(self, criterias):
+    def _tie_criterias(self, criterias):
         """Tie the criteria with their children and alternatives."""
         if not criterias:
             return
@@ -66,8 +101,8 @@ class Model:
                 if criteria_list is None:
                     self._tie_alternatives(parent_criteria)
                 else:
-                    self._tie_criteries(parent_criteria, criteria_list)
-                    self._tie(criteria_list)
+                    self._tie_criterias_with_parrent(parent_criteria, criteria_list)
+                    self._tie_criterias(criteria_list)
     
     
     def _tie_alternatives(self, criteria):
@@ -76,7 +111,7 @@ class Model:
             criteria.add_child(alternative)
 
 
-    def _tie_criteries(self, parent_criteria, criteria_list):
+    def _tie_criterias_with_parrent(self, parent_criteria, criteria_list):
         """Tie child criteria to the parent criteria."""
         for criteria_dict in criteria_list:
             for child_criteria in criteria_dict:
