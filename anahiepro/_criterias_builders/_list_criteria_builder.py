@@ -29,47 +29,31 @@ class _ListCriteriaBuilder(_BaseCriteriaBuilder):
             if not children:
                 return None
 
-            nested_criteria = [{child: build_nested_criteria(child)} for child in children]
+            nested_criteria = [{child.__copy__(): build_nested_criteria(child)} for child in children]
             return nested_criteria
 
-        built_criteria = [{ criteria: build_nested_criteria(criteria) } for criteria in self.criterias if build_nested_criteria(criteria)]
-        
-        for item in self.criterias[:]:
-            self._clear_criterias(item)
-            self.criterias.remove(item)
+        built_criteria = [{ criteria.__copy__() : build_nested_criteria(criteria) } for criteria in self.criterias]
 
         return built_criteria
-
-
-    def _clear_criterias(self, item):
-        if not item.children:
-            for parent in item.parents:
-                parent.children.remove(item)
-            item.parents = []
-            return
-
-        for child in item.children[:]:
-            child.parents.remove(item)
-            self._clear_criterias(child)
-
-        item.children = []
     
 
     def _get_depth(self):
         upper_criterias_depth = [list() for _ in range(len(self.criterias))]
 
-        def get_depth(depth, item, depth_list):
-            if len(item.get_children()) == 0:
+        def get_depth(depth, item):
+            if not item.get_children():
                 return depth
-            for child in item.get_children():
-                depth_list.append(get_depth(depth + 1, child, depth_list))
+            return max(get_depth(depth + 1, child) for child in item.get_children())
 
         for depth_list, criteria in zip(upper_criterias_depth, self.criterias):
-            get_depth(0, criteria, depth_list)
+            depth_list.append(get_depth(0, criteria))
 
         flattened_data = [item for sublist in upper_criterias_depth for item in sublist]
         return flattened_data
 
 
     def _is_valid_structure(self, criterias):
+        if not isinstance(criterias, list):
+            return False
+        
         return all(isinstance(c, Criteria) for c in criterias)

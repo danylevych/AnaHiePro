@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from copy import copy
 from anahiepro.pairwise import PairwiseComparisonMatrix
 
 
 
 class Node(ABC):
-    def __init__(self, name, parents=None, children=None, id=0):
+    def __init__(self, name, parents=None, children=None, id=0, pcm=None):
         """
         Initialize a Node object.
         
@@ -21,16 +21,20 @@ class Node(ABC):
             Unique identifier for the node (default is 0).
         """
         self._id = id
-        self.name = name
-        self.parents = []
-        self.children = []
+        self._name = name
+        self._parents = []
+        self._children = []
 
         if children:
             for child in children:
                 self.add_child(child)
 
-        self.pcm = None
+        self.pcm = pcm
     
+    
+    def __copy__(self):
+        return type(self)(self._name)
+
 
     def get_name(self):
         """
@@ -41,7 +45,7 @@ class Node(ABC):
         str
             Name of the node.
         """
-        return self.name
+        return self._name
     
 
     def get_parents(self):
@@ -53,7 +57,7 @@ class Node(ABC):
         list
             List of parent nodes.
         """
-        return self.parents
+        return self._parents
     
 
     def get_children(self):
@@ -65,7 +69,7 @@ class Node(ABC):
         list
             List of child nodes.
         """
-        return self.children
+        return self._children
     
 
     @abstractmethod
@@ -96,7 +100,7 @@ class Node(ABC):
             Parent node to be added.
         """
         if self._can_add(parent):
-            self.parents.append(parent)
+            self._parents.append(parent)
     
 
     def _check_append_condision(self, item):
@@ -173,7 +177,7 @@ class Node(ABC):
 
     def _show(self, depth):
         graph = '+' + ('--' * depth) + self.__str__()
-        for child in self.children:
+        for child in self._children:
             graph += child._show(depth + 1)
         return graph
     
@@ -195,14 +199,14 @@ class Node(ABC):
         if len(key) != 2:
             return False
         
-        return self.name == key[0] and self._id == key[1]
+        return self._name == key[0] and self._id == key[1]
     
 
     def create_pcm(self):
         """
         Create a Pairwise Comparison Matrix (PCM) for the node.
         """
-        self.pcm = PairwiseComparisonMatrix(len(self.children))
+        self.pcm = PairwiseComparisonMatrix(len(self._children))
     
 
     def set_matrix(self, matrix):
@@ -280,21 +284,21 @@ class Node(ABC):
     
     
     def __str__(self) -> str:
-        return self.name + '\n'
+        return self._name + '\n'
     
 
     def __eq__(self, value) -> bool:
-        return self.name == value.name and self._id == value._id
+        return self._name == value._name and self._id == value._id
     
 
     def __hash__(self) -> int:
-        return hash(self.name) + hash(self._id)
+        return hash(self._name) + hash(self._id)
 
 
 class Problem(Node):
     _problem_id = 0
     
-    def __init__(self, name=None, children=None):
+    def __init__(self, name=None, children=None, pcm=None):
         """
         Initialize a Problem node.
         
@@ -308,7 +312,7 @@ class Problem(Node):
         if name is None:
             name = "Problem" + str(Problem._problem_id)
 
-        super().__init__(name, None, children, Problem._problem_id)
+        super().__init__(name, None, children, Problem._problem_id, pcm)
         Problem._problem_id += 1
     
 
@@ -322,7 +326,7 @@ class Problem(Node):
             Child node to be added.
         """
         self._check_append_condision(child)
-        self.children.append(child)
+        self._children.append(child)
         child._add_parent(self)
 
 
@@ -333,7 +337,7 @@ class Problem(Node):
 class Criteria(Node):
     _criteria_id = 0
     
-    def __init__(self, name=None, children=None):
+    def __init__(self, name=None, children=None, pcm=None):
         """
         Initialize a Criteria node.
         
@@ -349,7 +353,7 @@ class Criteria(Node):
         if name is None:
             name = "Criteria" + str(Criteria._criteria_id)
 
-        super().__init__(name, None, children, Criteria._criteria_id)
+        super().__init__(name, None, children, Criteria._criteria_id, pcm)
         Criteria._criteria_id += 1
     
 
@@ -363,7 +367,7 @@ class Criteria(Node):
             Child node to be added.
         """
         self._check_append_condision(child)
-        self.children.append(child)
+        self._children.append(child)
         child._add_parent(self)
 
 

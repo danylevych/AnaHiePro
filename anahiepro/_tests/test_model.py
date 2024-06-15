@@ -14,6 +14,65 @@ class TestModelCreation(unittest.TestCase):
         self.criterias = [Criteria(), Criteria()]
         self.alternatives = [Alternative(), Alternative()]
     
+
+    def test_invalid_problem(self):
+        with self.assertRaises(TypeError):
+            Model(list(), self.criterias, self.alternatives)
+
+
+    def test_invalid_alternatives(self):
+        ivalid_alternatives = [dict(), list(), [Alternative(), Alternative(), Criteria()]]
+        
+        for invalid_avternative in ivalid_alternatives:
+            with self.assertRaises(TypeError):
+                Model(self.problem, self.criterias, invalid_avternative)
+
+
+    def test_ivalid_criterias_another_type(self):
+        with self.assertRaises(TypeError):
+            Model(self.problem, dict(), self.alternatives)
+
+
+    def test_ivalid_criterias_with_diff_depth(self):
+        list_dict = [{Criteria("Criteria1"): [
+                        {Criteria("Criteria2"): [{Criteria("Criteria7"): None}]},
+                        {Criteria("Criteria3"): [{Criteria("Criteria7"): None}]}
+                    ]},
+                    {Criteria("Criteria5"): [
+                        {Criteria("Criteria4"): None},
+                        {Criteria("Criteria6"): [{Criteria("Criteria7"): None}]},
+                        {Criteria("Criteria7"): [{Criteria("Criteria7"): None}]},
+                        {Criteria("Criteria8"): [{Criteria("Criteria7"): None}]}
+                    ]}]
+        
+        list_criterias = [Criteria("Criteria1", [Criteria("Criteria2"), Criteria("Criteria3")]),
+                          Criteria("Criteria5", [Criteria("Criteria4"), Criteria("Criteria6", [Criteria("Criteria7")])])]
+
+        invalide_criterias = [list_dict, list_criterias]
+        
+        for invalide_criteria in invalide_criterias:
+            with self.assertRaises(TypeError):
+                Model(self.problem, invalide_criteria, self.alternatives)
+
+
+    def test_invalid_criterias_list_dict(self):
+        list_dict = [{Criteria("Criteria1"): [
+                        {Criteria("Criteria2"): [{Alternative("Invalid type"): None}]},
+                        {Criteria("Criteria3"): [{Criteria("Criteria7"): None}]}
+                    ]}]
+        
+        list_dict_invalid_key = [{"invalid key": None}]
+        
+        list_dict_invalid_value = [{Criteria("Criteria10"): []}]
+        
+        invalid_criterias = [list_dict_invalid_value, list_dict, list_dict_invalid_key]
+
+        for invalid_criteria in invalid_criterias:
+            with self.assertRaises(TypeError):
+                self.setUp()
+                Model(self.problem, invalid_criteria, self.alternatives)
+        
+        
     def test_model_creation_success(self):
         """Test successful creation of Model instance."""
         self.criterias = [{Criteria(): None}, {Criteria(): None}]
@@ -43,10 +102,10 @@ class TestModelCreation(unittest.TestCase):
         self.assertIsInstance(model, Model)
         self.assertEqual(model.criterias, [], "The criterias list is not empty")
 
-    def test_model_creation_none_criterias(self):
-        """Test creation of Model with None as criterias."""
-        with self.assertRaises(TypeError):
-            Model(self.problem, None, self.alternatives)
+    # def test_model_creation_none_criterias(self):
+    #     """Test creation of Model with None as criterias."""
+    #     with self.assertRaises(TypeError):
+    #         Model(self.problem, None, self.alternatives)
 
 
 

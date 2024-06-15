@@ -1,36 +1,35 @@
-from anahiepro._criterias_builders._empty_criteria_builder import _EmptyCriteriaBuilder
-from anahiepro._criterias_builders._list_dict_ctiteria_builder import _ListDictCriteriaBuilder
-from anahiepro._criterias_builders._list_criteria_builder import _ListCriteriaBuilder
+from anahiepro._criterias_builders._wrapper_criteria_builder import _WrapperCriteriaBuilder
 from anahiepro.nodes import Problem, Criteria, Alternative
 import numpy as np
 
 
 
 class Model:
-    def __init__(self, problem: Problem, criterias: list, alternatives: list):
-        self.problem = problem
-        self.alternatives = alternatives
-        self.criterias = self._build_criterias(criterias)
-
-        self._build_model(criterias)
+    def __init__(self, problem: Problem, criterias, alternatives: list):
+        self.problem = self._validate_problem(problem)
+        self.alternatives = self._validate_alternatives(alternatives)
+        self.criterias = _WrapperCriteriaBuilder(criterias).build_criterias()
+        
+        self._build_model(self.criterias)
         self._build_pcm(self.problem)
     
     
-    def _build_criterias(self, criterias):
-        if criterias is None:
-            return _EmptyCriteriaBuilder(criterias).build_criteria()
-        
-        if isinstance(criterias, list):
-            if len(criterias) == 0:
-                return _EmptyCriteriaBuilder().build_criteria()
-            elif isinstance(criterias[0], dict):
-                return _ListDictCriteriaBuilder(criterias).build_criteria()
-            elif all(isinstance(c, Criteria) for c in criterias):
-                return _ListCriteriaBuilder(criterias).build_criterias()
-            
-        raise TypeError("The type of criterias is invalid. It might be: 'Criteria' or 'list' of 'Criteria'.")
+    def _validate_problem(self, problem):
+        if not isinstance(problem, Problem):
+            raise TypeError("Invalid problem type. Expected instance of Problem.")
+        return problem
     
-    
+
+    def _validate_alternatives(self, alternatives):
+        if not isinstance(alternatives, list):
+            raise TypeError("Alternatives should be a list.")
+        if len(alternatives) == 0:
+            raise TypeError("Alternatives can not be empty.")
+        if not all(isinstance(alternative, Alternative) for alternative in alternatives):
+            raise TypeError("All items in alternatives should be instances of Alternative.")
+        return alternatives
+
+
     def _build_model(self, criterias):
         """Build the problem hierarchy."""
         if len(criterias) == 0:
@@ -51,7 +50,7 @@ class Model:
 
     def _build_pcm(self, item):
         item.create_pcm()
-        for child in item.children:
+        for child in item.get_children():
             self._build_pcm(child)
     
     
@@ -121,7 +120,7 @@ class Model:
     
     
     def _add_criteria_name_id(self, where: list, criteria: Criteria):
-        where.append((criteria.name, criteria._id))
+        where.append((criteria._name, criteria._id))
     
     
     def _is_key_correct(self, key):
@@ -179,3 +178,7 @@ class Model:
             return global_vector
 
         return calculate_global_vector(self.problem)
+    
+    
+    def show(self):
+        return self.problem.show()

@@ -43,7 +43,7 @@ class TestProblem(unittest.TestCase):
         for child in children:
             parrent_problem.add_child(child)
         
-        self.assertListEqual(parrent_problem.children, children, "The children in the problem do not equal expected")
+        self.assertListEqual(parrent_problem._children, children, "The children in the problem do not equal expected")
 
 
     def test_invalid_compare(self):
