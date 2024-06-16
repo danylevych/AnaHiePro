@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from copy import copy
+import numpy as np
 from anahiepro.pairwise import PairwiseComparisonMatrix
 
 
@@ -220,6 +220,9 @@ class Node(ABC):
         """
         if not self.pcm:
             self.create_pcm()
+        
+        if np.array(matrix).shape != (self.pcm.size, self.pcm.size):
+            raise ValueError("The shape of matrix do not match.")
 
         self.pcm.set_matrix(matrix)
     

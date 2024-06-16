@@ -1,5 +1,6 @@
 from anahiepro._criterias_builders._wrapper_criteria_builder import _WrapperCriteriaBuilder
 from anahiepro.nodes import Problem, Criteria, Alternative
+from anahiepro._model_builder import _ModelBuilder
 import numpy as np
 
 
@@ -10,8 +11,8 @@ class Model:
         self.alternatives = self._validate_alternatives(alternatives)
         self.criterias = _WrapperCriteriaBuilder(criterias).build_criterias()
         
-        self._build_model(self.criterias)
-        self._build_pcm(self.problem)
+        builder = _ModelBuilder(self.problem, self.criterias, self.alternatives)
+        builder.build()
     
     
     def _validate_problem(self, problem):
@@ -30,65 +31,6 @@ class Model:
         return alternatives
 
 
-    def _build_model(self, criterias):
-        """Build the problem hierarchy."""
-        if len(criterias) == 0:
-            self._build_model_witout_criterias()
-
-        if criterias:
-            self._build_model_with_criterias(criterias)
-
-
-    def _build_model_witout_criterias(self):
-        self._tie_alternatives(self.problem)
-    
-
-    def _build_model_with_criterias(self, criterias):
-        self._tie_criterias(criterias)
-        self._tie_problem(criterias)
-
-
-    def _build_pcm(self, item):
-        item.create_pcm()
-        for child in item.get_children():
-            self._build_pcm(child)
-    
-    
-    def _tie_criterias(self, criterias):
-        """Tie the criteria with their children and alternatives."""
-        if not criterias:
-            return
-        
-        for criteria_dict in criterias:
-            for parent_criteria, criteria_list in criteria_dict.items():
-                if criteria_list is None:
-                    self._tie_alternatives(parent_criteria)
-                else:
-                    self._tie_criterias_with_parrent(parent_criteria, criteria_list)
-                    self._tie_criterias(criteria_list)
-    
-    
-    def _tie_alternatives(self, criteria):
-        """Tie alternatives to the given criteria."""
-        for alternative in self.alternatives:
-            criteria.add_child(alternative)
-
-
-    def _tie_criterias_with_parrent(self, parent_criteria, criteria_list):
-        """Tie child criteria to the parent criteria."""
-        for criteria_dict in criteria_list:
-            for child_criteria in criteria_dict:
-                parent_criteria.add_child(child_criteria)
-
-    
-    def _tie_problem(self, criterias):
-        """Tie the top-level criteria to the problem."""
-        for criteria_dict in criterias:
-            for criteria_item in criteria_dict:
-                self.problem.add_child(criteria_item)
-    
-    
-    
     def get_problem(self):
         """Return the problem instance."""
         return self.problem
@@ -134,7 +76,10 @@ class Model:
     def find_criteria(self, key: tuple):
         """Find criteria by (name, id) tuple."""
         if self._is_key_correct(key):
-            return self._find_criteria(key, self.criterias)
+            criteria = self._find_criteria(key, self.criterias)
+            if criteria is None:
+                raise ValueError(f"The Criteria with key ({key[0]}, {key[1]}) not found.")
+            return criteria
         else:
             raise KeyError
     
@@ -154,7 +99,7 @@ class Model:
     
     
     
-    def attach_pcm(self, key: tuple, pcm):
+    def attach_criteria_pcm(self, key: tuple, pcm):
         criteria = self.find_criteria(key)
         criteria.set_matrix(np.array(pcm))
     

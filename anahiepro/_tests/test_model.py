@@ -1,12 +1,10 @@
 import set_up_test_pathes
 
-
 import unittest
 import numpy as np
-
-import unittest
-from unittest.mock import Mock, patch
 from anahiepro.model import Model, Problem, Criteria, Alternative
+
+
 
 class TestModelCreation(unittest.TestCase):
     def setUp(self):
@@ -83,17 +81,36 @@ class TestModelCreation(unittest.TestCase):
         self.assertEqual(model.alternatives, self.alternatives)
         self.assertEqual(model.criterias, self.criterias)
 
+
+    def test_model_creation_success_list(self):
+        self.criterias = [Criteria(children=[Criteria()]), Criteria(children=[Criteria()])]
+        model = Model(self.problem, self.criterias, self.alternatives)
+        
+        self.assertEqual(model.problem, self.problem)
+        self.assertEqual(model.alternatives, self.alternatives)
+        self.assertIsInstance(model.criterias, list, "The criterias in instance have to be list obj.")
+        CORRECT_PARENT_NUM = 2
+        for alternative in model.alternatives:
+            self.assertEqual(len(alternative._parents), CORRECT_PARENT_NUM, "The number of alternative's parents is wrong.")
+        
+        CORRECT_CHILDREN_NUM = 2
+        self.assertEqual(len(model.get_problem().get_children()), CORRECT_CHILDREN_NUM, "The number of parent's children is wrong.")
+        
+        
+        
     def test_model_creation_invalid_criterias_type(self):
         """Test creation of Model with invalid criterias type."""
         invalid_criterias = "invalid_criterias"
         with self.assertRaises(TypeError):
             Model(self.problem, invalid_criterias, self.alternatives)
 
+
     def test_model_creation_invalid_criterias_structure(self):
         """Test creation of Model with invalid criterias structure."""
         invalid_criterias = ["invalid_criteria"]
         with self.assertRaises(TypeError):
             Model(self.problem, invalid_criterias, self.alternatives)
+
 
     def test_model_creation_empty_criterias(self):
         """Test creation of Model with empty criterias list."""
@@ -102,11 +119,97 @@ class TestModelCreation(unittest.TestCase):
         self.assertIsInstance(model, Model)
         self.assertEqual(model.criterias, [], "The criterias list is not empty")
 
-    # def test_model_creation_none_criterias(self):
-    #     """Test creation of Model with None as criterias."""
-    #     with self.assertRaises(TypeError):
-    #         Model(self.problem, None, self.alternatives)
+    
 
+class TestModelFunctionality(unittest.TestCase):
+    def setUp(self):
+        Problem._problem_id = 0
+        Criteria._criteria_id = 0
+        Alternative._alternative_id = 0
+        
+        self.problem = Problem()
+
+        self.criterias = [
+            {Criteria(): [
+                {Criteria(): None},
+                {Criteria(): None},
+                {Criteria(): None}
+            ]},    
+            {Criteria(): [
+                {Criteria(): None},
+                {Criteria(): None},
+                {Criteria(): None}
+            ]}
+        ]
+
+        self.alternatives = [Alternative(), Alternative(), Alternative()]
+
+        self.model = Model(self.problem, self.criterias, self.alternatives)
+    
+    
+    def test_get_problem(self):
+        self.assertIsInstance(self.model.get_problem(), Problem, "The problem must be an instance of Problem.")
+        
+    
+    def test_get_alternaives(self):
+        alternatives = self.model.get_alternatives()
+        self.assertIsInstance(alternatives, list, "get_alternatives have to return an instance of list.")
+        
+        CORRECT_PARENT_NUM = 6
+        for alternative in alternatives:
+            self.assertIsInstance(alternative, Alternative)
+            self.assertEqual(len(alternative._parents), CORRECT_PARENT_NUM, f"The number of alternative's parrent must be {CORRECT_PARENT_NUM}.")
+    
+    
+    def test_find_criteria(self):
+        name = "Criteria"
+        
+        for index in range(8):
+            criteria = self.model.find_criteria((name + str(index), index))
+            self.assertIsInstance(criteria, Criteria, "Found criteria is not an instance of Criteria class.")
+
+
+    def test_find_criteria_invalid_key(self):
+        invalid_keys = [["Criteria10", 10], list(), dict(), ("Criteria0", 0, "invalid key")]
+        
+        for invalid_key in invalid_keys:
+            with self.assertRaises(KeyError):
+                self.model.find_criteria(invalid_key)
+
+    
+    def test_find_criteria_key_does_not_exixt(self):
+        key_not_exist = ("Criteria10000", 10000)
+        
+        with self.assertRaises(ValueError):
+            self.model.find_criteria(key_not_exist)
+        
+    
+    def test_get_criterias_name_ids(self):
+        expected_name_ids = [("Criteria"+str(index), index) for index in range(8)]
+        actual_name_ids = list(self.model.get_criterias_name_ids())
+        
+        self.assertListEqual(expected_name_ids, actual_name_ids)
+
+    
+    def test_set_pcms(self):
+        two_2_two = np.ones((2, 2))
+        three_2_three = np.ones((3, 3))
+        
+        self.model.get_problem().set_matrix(two_2_two)
+        
+        name_ids = self.model.get_criterias_name_ids()
+        for key in name_ids:
+            self.model[key].set_matrix(three_2_three)
+            
+        self.assertEqual(self.model.get_problem().pcm.matrix.shape, (2, 2))
+        
+        for key in name_ids:
+            self.assertEqual(self.model[key].pcm.matrix.shape, (3, 3)) 
+
+
+
+class TestModelSolve(unittest.TestCase):
+    pass
 
 
 if __name__ == "__main__":

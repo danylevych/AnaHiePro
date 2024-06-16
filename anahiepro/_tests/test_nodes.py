@@ -76,8 +76,23 @@ class TestProblem(unittest.TestCase):
         problem.create_pcm()
         self.assertTrue(problem.get_pcm().shape == (4, 4), "The dimension of matrix is not correct")
     
+    
+    def test_set_matrix_invalid_shape(self):
+        problem = Problem(children=[Criteria(), Criteria(), Criteria()])
+        invalid_matrix = np.ones((4, 4))
+        
+        with self.assertRaises(ValueError):
+            problem.set_matrix(invalid_matrix)
 
-
+    
+    def test_set_matrix_correct_shape(self):
+        problem = Problem(children=[Criteria(), Criteria(), Criteria()])
+        valid_matrix = np.ones((3, 3))
+        
+        problem.set_matrix(valid_matrix)
+        self.assertEqual(problem.get_pcm().shape, (3, 3), "The matrix has wrong shape.")
+        
+        
 class TestCriteria(unittest.TestCase):
     def setUp(self):
         Criteria._criteria_id = 0
