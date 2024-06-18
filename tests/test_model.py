@@ -6,8 +6,29 @@ from anahiepro.model import Model, Problem, Criteria, Alternative
 
 
 
+def load_data(file_path):
+    data = []
+    with open(file_path, 'r') as file:
+        for line in file:
+            values = line.replace('\n', '').split()
+            inner_array = []
+            for value in values:
+                if '/' in value:
+                    fruction = value.split('/')
+                    inner_array.append(float(fruction[0])/float(fruction[1]))
+                else:
+                    inner_array.append(float(value))
+            data.append(inner_array)
+    return np.array(data)
+
+
+
 class TestModelCreation(unittest.TestCase):
     def setUp(self):
+        Problem._problem_id = 0
+        Criteria._criteria_id = 0
+        Alternative._alternative_id = 0
+        
         self.problem = Problem()
         self.criterias = [Criteria(), Criteria()]
         self.alternatives = [Alternative(), Alternative()]
@@ -209,7 +230,47 @@ class TestModelFunctionality(unittest.TestCase):
 
 
 class TestModelSolve(unittest.TestCase):
-    pass
+    def setUp(self):
+        Problem._problem_id = 0
+        Criteria._criteria_id = 0
+        Alternative._alternative_id = 0
+        
+    
+    def test_solve_1(self):
+        problem = Problem("Choose TV")
+        
+        criterias = [
+            {Criteria("Product attract"): [
+                {Criteria("Price"): None},
+                {Criteria("Reviews"): None}]},
+            {Criteria("Characteristics"): [
+                {Criteria("Screen"): None},
+                {Criteria("Functionality"): None},
+                {Criteria('System parameters'): None},
+                {Criteria("Physical params"): None}
+            ]}
+        ]
+        
+        alternatives = [
+            Alternative("Samsung UE50AU7100UXUA"),
+            Alternative("LG 55UP77006LB"),
+            Alternative("Samsung QE50Q60AAUXUA"),
+            Alternative("Samsung UE32T5300AUXUA"),
+            Alternative("Kivi 40F500LB"),
+        ]
+        
+        model = Model(problem, criterias, alternatives)
+        path = "/home/danylevych/Desktop/Projects/AnaHiePro/tests/data"
+        model.problem.set_matrix(load_data(path + "/problem_data.txt"))
+        
+        criterias_key = model.get_criterias_name_ids()
+        for key in criterias_key:
+            file_path = path + '/' + key[0] + '.txt'
+            model.attach_criteria_pcm(key, load_data(file_path))
+        
+        result = model.solve()
+        expected = np.array([0.483, 0.663, 0.34, 0.972, 0.495])
+        np.testing.assert_array_almost_equal(result, expected, decimal=2)
 
 
 if __name__ == "__main__":

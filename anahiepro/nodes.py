@@ -315,7 +315,7 @@ class Problem(Node):
         if name is None:
             name = "Problem" + str(Problem._problem_id)
 
-        super().__init__(name, None, children, Problem._problem_id, pcm)
+        super().__init__(name, None, children, id=Problem._problem_id, pcm=pcm)
         Problem._problem_id += 1
     
 
@@ -356,7 +356,7 @@ class Criteria(Node):
         if name is None:
             name = "Criteria" + str(Criteria._criteria_id)
 
-        super().__init__(name, None, children, Criteria._criteria_id, pcm)
+        super().__init__(name, None, children, id=Criteria._criteria_id, pcm=pcm)
         Criteria._criteria_id += 1
     
 

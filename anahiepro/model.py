@@ -110,11 +110,11 @@ class Model:
     
     def solve(self):
         def calculate_global_vector(node):
-            if not node.children or isinstance(node.children[0], Alternative):
+            if not node._children or isinstance(node._children[0], Alternative):
                 return node.get_priority_vector()
 
             children_global_vectors = []
-            for child in node.children:
+            for child in node._children:
                 children_global_vectors.append(calculate_global_vector(child))
             
             matrix = np.column_stack(children_global_vectors)
