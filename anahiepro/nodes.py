@@ -378,6 +378,13 @@ class Criteria(Node):
         return (self.get_name(), self._id)
 
 
+class DummyCriteria(Criteria):
+    _dummy_criteria_id  = 0
+    def __init__(self):
+        super().__init__("DummyCriteria" + str(DummyCriteria._dummy_criteria_id))
+        Criteria._criteria_id -= 1
+
+
 class Alternative(Node):
     _alternative_id = 0
     

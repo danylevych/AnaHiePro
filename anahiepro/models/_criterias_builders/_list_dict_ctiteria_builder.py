@@ -1,4 +1,4 @@
-from anahiepro._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
+from anahiepro.models._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
 from anahiepro.nodes import Criteria
 
 
@@ -19,11 +19,11 @@ class _ListDictCriteriaBuilder(_BaseCriteriaBuilder):
 
 
     def build_criteria(self):
-        if self.has_same_depth():
-            return self.criterias
-        raise TypeError("The depths of elements are different.")
+        if not self.has_same_depth() and self.checkDepth:  # Throw an exception only if the flag enabled.
+            raise TypeError("The depths of elements are different.")
+        return self.criterias
     
-
+    
     def _get_depth(self, structure, depth=0):
         if isinstance(structure, dict):
             for key, value in structure.items():

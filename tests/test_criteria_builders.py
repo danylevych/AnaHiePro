@@ -1,7 +1,7 @@
 import set_up_test_pathes
 
 import unittest
-from anahiepro.model import Model, Problem, Criteria, Alternative
+from anahiepro.models.model import Model, Problem, Criteria, Alternative
 from anahiepro._criterias_builders._wrapper_criteria_builder import _WrapperCriteriaBuilder, _EmptyCriteriaBuilder, _ListCriteriaBuilder, _ListDictCriteriaBuilder
 
 

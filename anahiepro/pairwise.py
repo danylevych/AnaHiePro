@@ -34,7 +34,7 @@ class PairwiseComparisonMatrix:
     def _try_to_set_matrix(self, matrix):
         if self._is_valid_matrix(matrix):
             self.size = matrix.shape[0]
-            self.matrix = np.array(matrix)
+            self.matrix = matrix
         else:
             raise ValueError("Matrix is not consistent or not a valid pairwise comparison matrix")
     
@@ -46,7 +46,7 @@ class PairwiseComparisonMatrix:
             return False
         
         for i in range(matrix.shape[0]):
-            if matrix[i][i] != 1:
+            if int(matrix[i][i]) != 1:  # cast to int, because floating comparing can have a bad accuracy.
                 return False
 
         return True

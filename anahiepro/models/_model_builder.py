@@ -60,5 +60,3 @@ class _ModelBuilder:
             for criteria_item in criteria_dict:
                 self.problem.add_child(criteria_item)
     
-    
-    

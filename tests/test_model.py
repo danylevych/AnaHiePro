@@ -1,8 +1,9 @@
+import os
 import set_up_test_pathes
 
 import unittest
 import numpy as np
-from anahiepro.model import Model, Problem, Criteria, Alternative
+from anahiepro.models.model import Model, Problem, Criteria, Alternative
 
 
 
@@ -235,6 +236,8 @@ class TestModelSolve(unittest.TestCase):
         Criteria._criteria_id = 0
         Alternative._alternative_id = 0
         
+        self.relative_path = os.path.dirname(os.path.abspath(__file__)) 
+        
     
     def test_solve_1(self):
         problem = Problem("Choose TV")
@@ -260,7 +263,7 @@ class TestModelSolve(unittest.TestCase):
         ]
         
         model = Model(problem, criterias, alternatives)
-        path = "/home/danylevych/Desktop/Projects/AnaHiePro/tests/data"
+        path = self.relative_path + "/data/test1/"
         model.problem.set_matrix(load_data(path + "/problem_data.txt"))
         
         criterias_key = model.get_criterias_name_ids()
@@ -272,6 +275,89 @@ class TestModelSolve(unittest.TestCase):
         expected = np.array([0.483, 0.663, 0.34, 0.972, 0.495])
         np.testing.assert_array_almost_equal(result, expected, decimal=2)
 
+
+    def test_solve_2(self):
+        problem = Problem("Choose System")
+        
+        criterias = [
+            {Criteria("Functional"): [
+                {Criteria("Compliance with requirments"): None},
+                {Criteria("Scalebility"): None},
+                {Criteria("Privacy"): None}
+            ]},
+            {Criteria("Decoration"): [
+                {Criteria("Convenience"): None},
+                {Criteria("Flexability"): None},
+                {Criteria("Intelligibility"): None}
+            ]}
+        ]
+        
+        alternatives = [
+            Alternative("My storage"),
+            Alternative("ICAOT"),
+            Alternative("G-Tables"),
+            Alternative("Simple WMS"),
+            Alternative("Online state")
+        ]
+        
+        model = Model(problem, criterias, alternatives)
+        path = self.relative_path + "/data/test2/"
+        model.problem.set_matrix(load_data(path + "/problem_data.txt"))
+        
+        criterias_key = model.get_criterias_name_ids()
+        for key in criterias_key:
+            file_path = path + '/' + key[0] + '.txt'
+            model.attach_criteria_pcm(key, load_data(file_path))
+        
+        result = model.solve()
+        expected = np.array([0.372, 0.982, 0.999, 0.263, 0.633])
+        np.testing.assert_array_almost_equal(result, expected, decimal=2)
+    
+    
+    
+    def test_solve_3(self):
+        problem = Problem("Choose phone")
+        
+        criterias = [
+            {Criteria("General characteristic"): [
+                {Criteria("Price"): None},
+                {Criteria("Battary"): None},
+                {Criteria("Memory"): None}
+            ]},
+            {Criteria("Device part"): [
+                {Criteria("Sim"): None},
+                {Criteria("RAM"): None},
+                {Criteria("CPU"): None}                
+            ]},
+            {Criteria("Outer part"): [
+                {Criteria("Display"): None},
+                {Criteria("Camera"): None},
+                {Criteria("Courpus material"): None}
+            ]}
+        ]
+        
+        alternatives = [
+            Alternative("Realme GT3"),
+            Alternative("Google Pixel 6a"),
+            Alternative("OnePlus 11"),
+            Alternative("Poco F3"),
+            Alternative("Xiaomi 12T")
+        ]
+
+        model = Model(problem, criterias, alternatives)
+        
+        path = self.relative_path + "/data/test3/"
+        model.problem.set_matrix(load_data(path + "/problem_data.txt"))
+        
+        criterias_key = model.get_criterias_name_ids()
+        for key in criterias_key:
+            file_path = path + '/' + key[0] + '.txt'
+            model.attach_criteria_pcm(key, load_data(file_path))
+        
+        result = model.solve()
+        expected = np.array([1.21, 0.50, 1.37, 0.39, 1.01])
+        np.testing.assert_array_almost_equal(result, expected, decimal=2)
+        
 
 if __name__ == "__main__":
     unittest.main()

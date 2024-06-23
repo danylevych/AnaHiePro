@@ -1,4 +1,4 @@
-from anahiepro._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
+from anahiepro.models._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
 from anahiepro.nodes import Criteria
 
 
@@ -18,9 +18,9 @@ class _ListCriteriaBuilder(_BaseCriteriaBuilder):
         
 
     def build_criteria(self):
-        if not self.has_same_depth():
+        if not self.has_same_depth() and self.checkDepth:  # Throw an exception only if flag is enabled. 
             raise TypeError("The depths of elements are different.")    
-
+        
         def build_nested_criteria(criteria):
             if not isinstance(criteria, Criteria):
                 return None
@@ -35,7 +35,7 @@ class _ListCriteriaBuilder(_BaseCriteriaBuilder):
         built_criteria = [{ criteria.__copy__() : build_nested_criteria(criteria) } for criteria in self.criterias]
 
         return built_criteria
-    
+     
 
     def _get_depth(self):
         upper_criterias_depth = [list() for _ in range(len(self.criterias))]

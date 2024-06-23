@@ -1,7 +1,7 @@
-from anahiepro._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
-from anahiepro._criterias_builders._empty_criteria_builder import _EmptyCriteriaBuilder
-from anahiepro._criterias_builders._list_criteria_builder import _ListCriteriaBuilder
-from anahiepro._criterias_builders._list_dict_ctiteria_builder import _ListDictCriteriaBuilder
+from anahiepro.models._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
+from anahiepro.models._criterias_builders._empty_criteria_builder import _EmptyCriteriaBuilder
+from anahiepro.models._criterias_builders._list_criteria_builder import _ListCriteriaBuilder
+from anahiepro.models._criterias_builders._list_dict_ctiteria_builder import _ListDictCriteriaBuilder
 from anahiepro.nodes import Criteria
 
 
@@ -14,7 +14,15 @@ class _WrapperCriteriaBuilder():
     def build_criterias(self):
         return self._builder.build_criteria()
     
-
+    
+    def has_same_depth(self):
+        return self._builder.has_same_depth()
+    
+    
+    def get_depth(self):
+        return self._builder._get_depth()
+    
+    
     def _set_builder(self, criterias):
         if criterias is None:
             return _EmptyCriteriaBuilder(criterias)

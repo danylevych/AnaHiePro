@@ -1,6 +1,6 @@
-from anahiepro._criterias_builders._wrapper_criteria_builder import _WrapperCriteriaBuilder
+from anahiepro.models._criterias_builders._wrapper_criteria_builder import _WrapperCriteriaBuilder
 from anahiepro.nodes import Problem, Criteria, Alternative
-from anahiepro._model_builder import _ModelBuilder
+from anahiepro.models._model_builder import _ModelBuilder
 import numpy as np
 
 
@@ -108,7 +108,7 @@ class Model:
         return self.find_criteria(key)
     
     
-    def solve(self):
+    def solve(self, showAlternatives=False):
         def calculate_global_vector(node):
             if not node._children or isinstance(node._children[0], Alternative):
                 return node.get_priority_vector()
@@ -122,7 +122,12 @@ class Model:
             global_vector = matrix.dot(parrent_vector)
             return global_vector
 
-        return calculate_global_vector(self.problem)
+        global_vector = calculate_global_vector(self.problem)
+        
+        if showAlternatives:
+            return [(alternative, value) for (alternative, value) in zip(self.alternatives, global_vector)]
+        
+        return global_vector
     
     
     def show(self):

@@ -1,4 +1,4 @@
-from anahiepro._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
+from anahiepro.models._criterias_builders._base_criteria_builder import _BaseCriteriaBuilder
 
 
 class _EmptyCriteriaBuilder(_BaseCriteriaBuilder):
@@ -10,3 +10,6 @@ class _EmptyCriteriaBuilder(_BaseCriteriaBuilder):
 
     def build_criteria(self):
         return list()
+    
+    def _get_depth(self):
+        return 0
