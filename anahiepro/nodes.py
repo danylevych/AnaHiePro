@@ -296,6 +296,10 @@ class Node(ABC):
 
     def __hash__(self) -> int:
         return hash(self._name) + hash(self._id)
+    
+    
+    def __repr__(self):
+        return self._name
 
 
 class Problem(Node):

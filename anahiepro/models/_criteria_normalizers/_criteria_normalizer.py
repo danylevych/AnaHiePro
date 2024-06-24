@@ -8,7 +8,6 @@ class _CriteriaNormalizer():
         criteria_builder._builder.not_throw_exception_while_build() # The criterias do not have the same depth if we are here. 
         self._criterias = criteria_builder.build_criterias()
         self._criterias = self._normalize_criteria_depth(self._criterias)
-        pprint(self._criterias)
         
     
     def _normalize_criteria_depth(self, criterias):        
