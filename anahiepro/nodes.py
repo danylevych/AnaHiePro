@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from anahiepro.pairwise import PairwiseComparisonMatrix
 
-
+# TODO: change the shape of 
 
 class Node(ABC):
     def __init__(self, name, parents=None, children=None, id=0, pcm=None):
@@ -29,6 +29,10 @@ class Node(ABC):
             for child in children:
                 self.add_child(child)
 
+        if parents:
+            for parent in parents:
+                self._parents.append(parent)
+        
         self.pcm = pcm
     
     
