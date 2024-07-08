@@ -32,7 +32,7 @@ class _ListCriteriaBuilder(_BaseCriteriaBuilder):
             nested_criteria = [{child.__copy__(): build_nested_criteria(child)} for child in children]
             return nested_criteria
 
-        built_criteria = [{ criteria.__copy__() : build_nested_criteria(criteria) } for criteria in self.criterias]
+        built_criteria = [{criteria.__copy__() : build_nested_criteria(criteria) } for criteria in self.criterias]
 
         return built_criteria
      

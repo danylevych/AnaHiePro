@@ -63,7 +63,7 @@ list_of_criterias = [
 
 alternatives = [
     Alternative("Alternative_1"),
-    Alternative("Alternative_1")
+    Alternative("Alternative_2")
 ]
 
 model = Model(problem, list_of_criterias, alternatives)
@@ -80,7 +80,7 @@ print(model.show())
 - [Tools](#tools)
 
 
-### Pairwise matrix
+### Pairwise matrix <a name="pairwise_matrix"></a>
 
 `PairwiseComparisonMatrix` represents the pairwise comparison matrix. A pairwise comparison matrix is a tool used in decision-making processes. It helps compare different options or criteria by evaluating them in pairs. Each element of the matrix represents the comparison result between two options or criteria.
 
@@ -117,7 +117,7 @@ print("Consistency ratio:", pairwise_matrix.calculate_consistency_ratio())
 print("Priority vector:", pairwise_matrix.calculate_priority_vector())
 ```
 
-Input:
+Output:
 ```
 [[1.         2.         3.        ]
  [0.5        1.         2.        ]
@@ -128,7 +128,9 @@ Priority vector: [0.84679693 0.46601031 0.25645536]
 
 ### Nodes
 
-AnaHiePro has three types of nodes: Problem, Criteria (also DummyCriteria, which use for normalizing a model) and Alternative. All of them is inherited from abstract class `Node`.
+AnaHiePro has three types of nodes: Problem, Criteria (also DummyCriteria, which use for normalizing a model) and Alternative. All of them is inherited from abstract class `Node`. 
+
+> **_NOTE:_** And we want to mentioned that each class which is inhereted from `Node` has an id field.
 
 #### Node class
 
@@ -223,7 +225,7 @@ criteria2.add_child(alternative2)
 print(problem.show())
 ```
 
-Input:
+Output:
 
 ```
 +Example Problem
@@ -233,6 +235,210 @@ Input:
 +--Criteria_2
 +----Alternative_1
 +----Alternative_2
+```
+
+### Models
+
+AnaHiePro has two types of models that you can use for automatic solve setted problem - `Model` and `VaryDepthModel`.
+
+#### Differences between `Model` and `VaryDepthModel`
+
+This two classes are called for solve different types of problem. To be honest `VaryDepthModel` is used for problems with different depth such as at the image down below.
+
+![example](assets/img/varydepthmodel.png)
+
+At that time the `Model` can solve problems which have hierarchy with the same depth of each children for them (look at the next picture).
+
+![example](assets/img/normalmodel.png)
+
+#### About Models
+
+Each model classes, which AnaHiePro has, have the methods which is described down below.
+
+
+| Method Name       | Description                                       |
+|-------------------|---------------------------------------------------|
+| `__init__(self, problem: Problem, criterias, alternatives: list)` | Initialize the model with a problem, criteria, and alternatives. Also checks if the criterias has correct format, type and for `Model` - if the depth of the criterias hierarchy is the same depth. |
+| `get_problem(self)` | Return the problem instance. |
+| `get_alternatives(self)` | Return the list of alternatives. |
+| `get_criterias_name_ids(self)` | Get the names and IDs of the criteria. |
+| `find_criteria(self, key: tuple)` | Find criteria by (name, id) tuple. |
+| `attach_criteria_pcm(self, key: tuple, pcm)`| Attach a pairwise comparison matrix to the criteria identified by the key. |
+| `__getitem__(self, key: tuple)` | Get the criteria identified by the key. |
+| `solve(self, showAlternatives=False)` | Solve the model to calculate the global priority vector. |
+| `show(self)` | Display the problem. | 
+
+#### Examples
+
+`Model` and `VaryDepthModel` can take the next format of the criterias in their `__init__` method:
+
+```py
+criterias = [Criteria(children=[Criteria()]), 
+             Criteria(children=[Criteria()]),
+             Criteria(children=[Criteria()])]
+```
+
+or 
+
+```py
+criterias = [
+    {Criteria(): [
+        {Criteria(): None}
+    ]},
+    {Criteria(): [
+        {Criteria(): None}
+    ]},
+    {Criteria(): [
+        {Criteria(): None}
+    ]}
+]
+```
+
+
+Another formats of the `criterias` param is not added (except of empty list).
+
+Here you can see the simplest way how to create `Model` instance:
+
+```py
+from anahiepro.nodes import Problem, Criteria, Alternative
+from anahiepro.models.model import Model
+
+problem = Problem("Example Problem")
+
+list_of_criterias = [
+    Criteria("Citeria_1", children=[
+        Criteria("Criteria_4")
+    ]),
+    Criteria("Citeria_2", children=[
+        Criteria("Criteria_5")
+    ]),
+    Criteria("Citeria_3", children=[
+        Criteria("Criteria_5")
+    ]),
+]
+
+alternatives = [
+    Alternative("Alternative_1"),
+    Alternative("Alternative_2")
+]
+
+model = Model(problem, list_of_criterias, alternatives)
+
+print(model.show())
+```
+
+Output:
+
+```
++Example Problem
++--Citeria_1
++----Criteria_4
++------Alternative_1
++------Alternative_2
++--Citeria_2
++----Criteria_5
++------Alternative_1
++------Alternative_2
++--Citeria_3
++----Criteria_5
++------Alternative_1
++------Alternative_2
+```
+
+Now let's see how it works for `VaryDepthModel`:
+
+```py
+from anahiepro.nodes import Problem, Criteria, Alternative
+from anahiepro.models.vary_depth_model import VaryDepthModel
+
+problem = Problem("Example Problem")
+
+list_of_criterias = [
+    Criteria("Citeria_1", children=[
+        Criteria("Criteria_4")
+    ]),
+    Criteria("Citeria_2", children=[
+        Criteria("Criteria_5")
+    ]),
+    Criteria("Citeria_3"),  # <- Here Criteria_3 does not have children.
+]
+
+alternatives = [
+    Alternative("Alternative_1"),
+    Alternative("Alternative_2")
+]
+
+model = VaryDepthModel(problem, list_of_criterias, alternatives)
+
+print(model.show())
+```
+
+Output:
+
+```
++Example Problem
++--Citeria_1
++----Criteria_4
++------Alternative_1
++------Alternative_2
++--Citeria_2
++----Criteria_5
++------Alternative_1
++------Alternative_2
++--DummyCriteria0
++----Citeria_3
++------Alternative_1
++------Alternative_2
+```
+
+So, as you can see from the out put `VaryDepthModel` normalize the hierarchy of problem. And, yes, you can use `VaryDepthModel` with the example for `Model` class.
+
+#### Example with the solving of the hierarchy
+
+```py
+from anahiepro.nodes import Problem, Criteria, Alternative
+from anahiepro.models.model import Model
+
+problem = Problem("Example Problem", pcm=[[1,   2,   1/2],
+                                          [1/2, 1,   1/7],
+                                          [2,   7,   1]])
+
+list_of_criterias = [
+    Criteria("Citeria_1", pcm=[[1,   2,   4],
+                               [1/2, 1,   3],
+                               [1/4, 1/3, 1]]),
+    
+    Criteria("Citeria_2", pcm=[[1,   2,   1/5],
+                               [1/2, 1,   3],
+                               [5,   1/3, 1]]),
+    
+    Criteria("Citeria_3", pcm=[[1,   1/3,   3],
+                               [3,   1,   3],
+                               [1/3, 1/3, 1]]),
+]
+
+alternatives = [
+    Alternative("Alternative_1"),
+    Alternative("Alternative_2"),
+    Alternative("Alternative_3")
+]
+
+model = Model(problem, list_of_criterias, alternatives)
+
+print("Global vector without alternatives:")
+print(model.solve())
+
+print("Global vector with alternatives:")
+print(model.solve(showAlternatives=True))
+```
+
+Output:
+```
+Global vector without alternatives:
+[0.64557092 0.88998852 0.15336415]
+
+Global vector with alternatives:
+[(Alternative_1, np.float64(0.6455709201621959)), (Alternative_2, np.float64(0.8899885172373624)), (Alternative_3, np.float64(0.15336414859759606))]
 ```
 
 ## ✍️ Authors <a name = "authors"></a>

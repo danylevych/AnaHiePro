@@ -24,7 +24,8 @@ class Node(ABC):
         self._name = name
         self._parents = []
         self._children = []
-
+        self.pcm = None
+        
         if children:
             for child in children:
                 self.add_child(child)
@@ -33,11 +34,13 @@ class Node(ABC):
             for parent in parents:
                 self._parents.append(parent)
         
-        self.pcm = pcm
-    
+        self._set_pcm(pcm)
+
     
     def __copy__(self):
-        return type(self)(self._name)
+        instance = type(self)(self._name)
+        instance.pcm = self.pcm
+        return instance
 
 
     def get_name(self):
@@ -210,6 +213,9 @@ class Node(ABC):
         """
         Create a Pairwise Comparison Matrix (PCM) for the node.
         """
+        if self.pcm and len(self.pcm.matrix) == len(self._children):
+            return
+        
         self.pcm = PairwiseComparisonMatrix(len(self._children))
     
 
@@ -230,7 +236,16 @@ class Node(ABC):
 
         self.pcm.set_matrix(matrix)
     
-
+    def _set_pcm(self, pcm):
+        if not pcm:
+            return
+        
+        if isinstance(pcm, PairwiseComparisonMatrix):
+            self.pcm = PairwiseComparisonMatrix(size=len(pcm.matrix), matrix=pcm.matrix)
+        else:
+            self.pcm = PairwiseComparisonMatrix(size=len(pcm), matrix=pcm)
+        
+        
     def set_comparison(self, i, j, value):
         """
         Set a comparison value in the PCM.
