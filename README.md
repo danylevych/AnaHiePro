@@ -35,17 +35,21 @@
 
 The module provides a recursive traversal of the hierarchical tree, starting from the leaf nodes and moving up to the root. Each level of the hierarchy is processed by multiplying the matrix of local child vectors by the global parent vector, which allows you to determine the weight of each element at all levels. This makes AnaHiePro an ideal tool for analyzing complex systems and making informed decisions in a variety of fields, including business, project management, scientific research, and more.
 
-## 🏁 Getting Started <a name = "getting_started"></a>
+## 🏁 Getting Started <a name="getting_started"></a>
 
-<h4>This is simple instruction how to install <b>AnaHiePro</b> on your PC and start to use it.<h4>
+<h4>These are simple instructions on how to install <b>AnaHiePro</b> on your PC and start using it.</h4>
 
 ### Installing
 
-Open the terminal window and write the following command:
+Open the terminal window (Linux and macOS) or command line (Windows). Then use the `pip` command to install the module:
 
-```
+```sh
 pip install anahiepro
 ```
+
+### Prerequisites
+
+Before installing AnaHiePro, ensure you have Python 3.x and `pip` installed on your system. You can download the latest version of Python from [python.org](https://www.python.org/).
 
 After loading you can use all AnaHiePro's functionality, down below you can see the simplest way of using AnaHiePro.
 
@@ -128,30 +132,30 @@ Priority vector: [0.84679693 0.46601031 0.25645536]
 
 ### Nodes
 
-AnaHiePro has three types of nodes: Problem, Criteria (also DummyCriteria, which use for normalizing a model) and Alternative. All of them is inherited from abstract class `Node`. 
+AnaHiePro has three types of nodes: Problem, Criteria (also DummyCriteria, which use for normalizing the model) and Alternative. All of them is inherited from abstract class `Node`. 
 
-> **_NOTE:_** And we want to mentioned that each class which is inhereted from `Node` has an id field.
+> **_NOTE:_** And we want to mentione that each class which is inhereted from `Node` has an id field.
 
 #### Node class
 
-As we mentioned before `Node` is a basic class for `Problem`, `Criteria` and `Alternative`. Down below you can see all `Node`'s methods:
+As we mentioned before, `Node` is a basic class for `Problem`, `Criteria` and `Alternative`. Down below you can see all `Node`'s methods:
 <br>
 
 | Method Name       | Description                                       |
 |-------------------|---------------------------------------------------|
-| `__init__(self, name, parents, children, id, pcm)` | Initialize the `Node` object with given `name`, list of its `parents`, list of its `children`, identifier (`id`) and pcm. |
+| `__init__(self, name, parents, children, id, pcm)` | Initialize the `Node` object with given `name`, list of its `parents`, list of `children`, identifier (`id`) and pcm. |
 | `get_name(self)`                    | Returns the name of the node. |
 | `get_parents(self)`                 | Returns list of parents for the node. |
-| `get_children(self)`                | Returns list of childrens for the node. |
+| `get_children(self)`                | Returns list of children for the node. |
 | `get_key(self)`                     | Returns the tuple object, which consists of name of a node and its id. |
 | `add_child(self, child)`            | Add `child` to the list of children. |
-| `show(self)`                        | Returns str object which represent all relations between nodes. |
+| `show(self)`                        | Returns str object, which represent all relations between nodes. |
 | `compare(self, key: tuple)`         |  Compare the node with a given key, where `key` is a tuple object which has size that equal 2. `key[0]` is a name of node and `key[1]` is an identifier of the node. |
 | `create_pcm(self)`                  | Create a pairwise comparison matrix (PCM) object for the node which shape is equal number of node's childrens. |
 | `set_matrix(self, matrix)`          | Attach given PCM to the node. If the `self.pcm` does not exist call the `create_pcm` method than checks if the shape of given matrix matchs, raise `VlalueError` if does not otherwise attach it. |
 | `set_comparison(self, i, j, value)` |  Set given `value` to the right place. Other words it is a wrapper above the `PairwiseComparisonMatrix`'s `set_comparison` method. |
 | `get_priority_vector(self)`         | Wrapper above PairwiseComparisonMatrix`'s `get_priority_vector` method. |
-| `get_consistency_ratio(self)`       |  Wrapper above PairwiseComparisonMatrix`'s `get_consistency_ratio` method. |
+| `get_consistency_ratio(self)`       | Wrapper above PairwiseComparisonMatrix`'s `get_consistency_ratio` method. |
 | `get_pcm(self)`                     | Returns the pairwise comparison matrix of the node. |
 | `__eq__(self, value)` | Compare two `Node`'s instance. |
 | `def show(self)` | Show the node and its children in a hierarchical structure. |
@@ -160,13 +164,13 @@ As we mentioned before `Node` is a basic class for `Problem`, `Criteria` and `Al
 
 #### Problem class
 
-`Problem` is a class that represents the ptoblem, which user want to solve. This class inherits form `Node` and has the same methods as his parrent, except of this it overrides some methods.
+`Problem` is a class that represents the problem that the user wants to solve. This class inherits from Node and has the same methods as its parent. However, it overrides some methods.
 
 | Method Name       | Description                                       |
 |-------------------|---------------------------------------------------|
 | `__init__(self, name, children, pcm)` | Initialize the `Problem` object with given `name`, list of its childern and pairwise comparison matrix. |
 
-Rest methods are the same as in `Node` class.
+The remaining methods are the same as in the `Node` class.
 
 #### Criteria class 
 
@@ -176,7 +180,7 @@ Rest methods are the same as in `Node` class.
 |-------------------|---------------------------------------------------|
 | `__init__(self, name, children, pcm)` | Initialize the `Criteria` object with given `name`, list of its childern and pairwise comparison matrix. |
 
-Rest methods are the same as in `Node` class.
+The remaining methods are the same as in the `Node` class.
 
 #### DummyCriteria class
 
@@ -184,17 +188,16 @@ Rest methods are the same as in `Node` class.
 
 #### Alternative class
 
-`Alternative` represents alternatives between which the selection is happened. Scince `Alternative` is the final node in hierarchy it have not children, so that the `self.pcm` field for it is deleted.
-
+`Alternative` represents alternatives between which the selection occurs. Since `Alternative` is the final node in the hierarchy, it has no children, so the self.pcm field for it is deleted.
 
 | Method Name       | Description                                       |
 |-------------------|---------------------------------------------------|
 | `__init__(self, name)` | Initialize the `Alternative` object with given `name`. |
-| `create_pcm(self)` | Does not implemented for reasons which were mentioned. |
-| `set_matrix(self, matrix)` | Does not implemented and raise `NotImplementedError` exception. |
-| `set_comparison(self, i, j, value) | Does not implemented and raise `NotImplementedError` exception. |
+| `create_pcm(self)` | Not implemented for reasons which were mentioned. |
+| `set_matrix(self, matrix)` | Not implemented and raise `NotImplementedError` exception. |
+| `set_comparison(self, i, j, value) | Not implemented and raise `NotImplementedError` exception. |
 
-Rest methods are the same as in `Node` class.
+The remaining methods are the same as in the `Node` class.
 
 #### Example
 
@@ -211,7 +214,7 @@ criteria2 = Criteria("Criteria_2")
 alternative1 = Alternative("Alternative_1")
 alternative2 = Alternative("Alternative_2")
 
-# Lincing each instances.
+# Linking each instances.
 problem.add_child(criteria1)
 problem.add_child(criteria2)
 
@@ -239,22 +242,21 @@ Output:
 
 ### Models
 
-AnaHiePro has two types of models that you can use for automatic solve setted problem - `Model` and `VaryDepthModel`.
+AnaHiePro has two types of models that you can use to automatically solve the set problems: `Model` and `VaryDepthModel`.
 
 #### Differences between `Model` and `VaryDepthModel`
 
-This two classes are called for solve different types of problem. To be honest `VaryDepthModel` is used for problems with different depth such as at the image down below.
+These two classes are designed to solve different types of problems. Specifically, `VaryDepthModel` is used for problems with varying depths, as shown in the image below.
 
 ![example](assets/img/varydepthmodel.png)
 
-At that time the `Model` can solve problems which have hierarchy with the same depth of each children for them (look at the next picture).
+On the other hand, `Model` can solve problems that have a hierarchy with the same depth for each child, as illustrated in the next picture.
 
 ![example](assets/img/normalmodel.png)
 
 #### About Models
 
-Each model classes, which AnaHiePro has, have the methods which is described down below.
-
+Each model class in AnaHiePro has methods that are described below.
 
 | Method Name       | Description                                       |
 |-------------------|---------------------------------------------------|
@@ -391,7 +393,7 @@ Output:
 +------Alternative_2
 ```
 
-So, as you can see from the out put `VaryDepthModel` normalize the hierarchy of problem. And, yes, you can use `VaryDepthModel` with the example for `Model` class.
+So, as you can see from the output, `VaryDepthModel` normalized the hierarchy. And, yes, you can use `VaryDepthModel` with the example for `Model` class.
 
 #### Example with the solving of the hierarchy
 
